@@ -4,9 +4,15 @@ from BMI160 import registers
 from BMI160 import commands
 from BMI160 import definitions
 from time import sleep_ms, sleep_us
+import utime
 from struct import unpack
+import math
 
 class BMI160:
+
+    GYRO_SCALE_RANGE_125 = 262.4 #LSBs per (deg/sec) if full scale is set to +/- 125 deg/sec
+    ACCEL_SCALE_RANGE_2 = 16384.0 #LSBs per g if full scale is set to +/- 2 g
+    MSECSQR_PER_G = 9.80665 #Conversion from g to meters per square second
 
     ## Power on and prepare for general usage.
     # This will activate the device and take it out of sleep mode (which must be done
@@ -36,13 +42,19 @@ class BMI160:
             pass
         sleep_ms(1)
 
-        self.setFullScaleGyroRange(definitions.GYRO_RANGE_250, 250.0)
-        self.setFullScaleAccelRange(definitions.ACCEL_RANGE_2G, 2.0)
+        self.set_gyro_rate(definitions.GYRO_RATE_25HZ)
+        self.set_gyro_dlpf_mod(0)
+        self.set_accel_rate(definitions.ACCEL_RATE_25HZ)
 
+        self.setFullScaleGyroRange(definitions.GYRO_RANGE_125)
+        self.setFullScaleAccelRange(definitions.ACCEL_RANGE_2G)
+        
         # Only PIN1 interrupts currently supported - map all interrupts to PIN1
         self._reg_write(registers.INT_MAP_0, 0xFF)
         self._reg_write(registers.INT_MAP_1, 0xF0)
         self._reg_write(registers.INT_MAP_2, 0x00)
+        self._prev_meas_tm = utime.ticks_ms()
+        self._accel_calib_G = 0
 
     def _reg_read_bits(self, reg, pos, len):
         b = self._reg_read(reg)
@@ -72,7 +84,7 @@ class BMI160:
     # @return Device ID (should be 0xD1)
     # @see BMI160_RA_CHIP_ID
     def get_device_id(self):
-        return self._reg_read(register.CHIP_ID)
+        return self._reg_read(registers.CHIP_ID)
 
     ## Get gyroscope output data rate.
     # The gyr_odr parameter allows setting the output data rate of the gyroscope
@@ -167,7 +179,7 @@ class BMI160:
     # @param mode New DLFP configuration setting
     # @see get_gyro_dlpf_mode()
     def set_gyro_dlpf_mod(self, emode):
-        return self._reg_write_bits(registers.GYRO_CONF, mode, definitions.GYRO_DLPF_SEL_BIT, definitions.GYRO_DLPF_SEL_LEN)
+        return self._reg_write_bits(registers.GYRO_CONF, emode, definitions.GYRO_DLPF_SEL_BIT, definitions.GYRO_DLPF_SEL_LEN)
 
     ## Get accelerometer digital low-pass filter mode.
     # The acc_bwp parameter sets the accelerometer digital low pass filter configuration.
@@ -227,9 +239,8 @@ class BMI160:
     ## Set full-scale gyroscope range.
     # @param range New full-scale gyroscope range value
     # @see getFullScaleGyroRange()
-    def setFullScaleGyroRange(self, range, real):
+    def setFullScaleGyroRange(self, range):
         self._reg_write_bits(registers.GYRO_RANGE, range, definitions.GYRO_RANGE_SEL_BIT, definitions.GYRO_RANGE_SEL_LEN)
-        gyro_range = real
 
     ## Get full-scale accelerometer range.
     # The FS_SEL parameter allows setting the full-scale range of the accelerometer
@@ -252,9 +263,8 @@ class BMI160:
     # @param range New full-scale accelerometer range setting
     # @see getFullScaleAccelRange()
     # @see BMI160AccelRange
-    def setFullScaleAccelRange(self, range, real):
+    def setFullScaleAccelRange(self, range):
         self._reg_write_bits(registers.ACCEL_RANGE, range, definitions.ACCEL_RANGE_SEL_BIT, definitions.ACCEL_RANGE_SEL_LEN)
-        accel_range = real
 
     ## Get accelerometer offset compensation enabled value.
     # @see getXAccelOffset()
@@ -381,7 +391,7 @@ class BMI160:
     # @see registers.OFFSET_0
     def setXAccelOffset(self, offset):
         self._reg_write(registers.OFFSET_0, offset);
-        getAccelerationX()  # Read and discard the next data value
+        self.getAccelerationX()  # Read and discard the next data value
 
     ## Get offset compensation value for accelerometer Y-axis data.
     # The value is represented as an 8-bit two-complement number in
@@ -397,7 +407,7 @@ class BMI160:
     # @see registers.OFFSET_1
     def setYAccelOffset(self, offset):
         self._reg_write(registers.OFFSET_1, offset);
-        getAccelerationY()  # Read and discard the next data value
+        self.getAccelerationY()  # Read and discard the next data value
 
     ## Get offset compensation value for accelerometer Z-axis data.
     # The value is represented as an 8-bit two-complement number in
@@ -413,7 +423,7 @@ class BMI160:
     # @see registers.OFFSET_2
     def setZAccelOffset(self, offset):
         self._reg_write(registers.OFFSET_2, offset);
-        getAccelerationZ()  # Read and discard the next data value
+        self.getAccelerationZ()  # Read and discard the next data value
 
     ## Get gyroscope offset compensation enabled value.
     # @see getXGyroOffset()
@@ -468,7 +478,7 @@ class BMI160:
     def setXGyroOffset(self, offset):
         self._reg_write(registers.OFFSET_3, offset)
         self._reg_write_bits(registers.OFFSET_6, offset >> 8, definitions.GYR_OFFSET_X_MSB_BIT, definitions.GYR_OFFSET_X_MSB_LEN)
-        getRotationX()  # Read and discard the next data value
+        self.getRotationX()  # Read and discard the next data value
 
     ## Get offset compensation value for gyroscope Y-axis data.
     # The value is represented as an 10-bit two-complement number in
@@ -489,7 +499,7 @@ class BMI160:
     def setYGyroOffset(self, offset):
         self._reg_write(registers.OFFSET_4, offset)
         self._reg_write_bits(registers.OFFSET_6, offset >> 8, definitions.GYR_OFFSET_Y_MSB_BIT, definitions.GYR_OFFSET_Y_MSB_LEN)
-        getRotationY()  # Read and discard the next data value
+        self.getRotationY()  # Read and discard the next data value
 
     ## Get offset compensation value for gyroscope Z-axis data.
     # The value is represented as an 10-bit two-complement number in
@@ -510,7 +520,7 @@ class BMI160:
     def setZGyroOffset(self, offset):
         self._reg_write(registers.OFFSET_5, offset)
         self._reg_write_bits(registers.OFFSET_6, offset >> 8, definitions.GYR_OFFSET_Z_MSB_BIT, definitions.GYR_OFFSET_Z_MSB_LEN)
-        getRotationZ()  # Read and discard the next data value
+        self.getRotationZ()  # Read and discard the next data value
 
     ## Get free-fall event acceleration threshold.
     # This register configures the detection threshold for Free Fall event
@@ -1012,7 +1022,7 @@ class BMI160:
     # @see definitions.LOW_G_EN_BIT
     #*/
     def setIntFreefallEnabled(self, enabled):
-        self._reg_write_bits(registers.INT_EN_1, 0x1 if enabled else 0,durationdefinitions.LOW_G_EN_BIT,durationdefinitions.LOW_G_EN_LEN)
+        self._reg_write_bits(registers.INT_EN_1, 0x1 if enabled else 0, definitions.LOW_G_EN_BIT,definitions.LOW_G_EN_LEN)
 
     ## Get Shock interrupt enabled status.
     # Will be set 0 for disabled, 1 for enabled.
@@ -1291,7 +1301,7 @@ class BMI160:
     # Please refer to the BMI160 Data Sheet for more information.
     # @return Current interrupt status
     # @see registers.INT_STATUS_1
-    def getIntStatus1():
+    def getIntStatus1(self):
         return self._reg_read(registers.INT_STATUS_1)
 
     ## Get full set of interrupt status bits from INT_STATUS[2] register.
@@ -1492,7 +1502,7 @@ class BMI160:
     # @see registers.INT_STATUS_2
     # @see definitions.ANYMOTION_SIGN_BIT
     # @see definitions.ANYMOTION_1ST_Z_BIT
-    def getZPosMotionDetected():
+    def getZPosMotionDetected(self):
         status = self._reg_read(registers.INT_STATUS_2)
         return 0 != (not (status & (1 << definitions.ANYMOTION_SIGN_BIT)) and (status & (1 << definitions.ANYMOTION_1ST_Z_BIT)))
 
@@ -1838,6 +1848,31 @@ class BMI160:
         raw = self._regs_read(registers.GYRO_Y_L, 2)
         val = unpack('<h', bytes(raw))
         return val
+
+
+    ## Get metric values of accelerometer and gyroscope
+    # @return (av_x, av_y, av_z, la_x, la_y, la_z) 
+    #   av_* - angular velocity * in deg/sec
+    #   la_* - Linear accelearation in G
+    def getMetricMotion6(self):
+        motion = self.getMotion6()
+        _tm =  utime.ticks_ms()
+        av_x = math.radians(motion[0] / BMI160.GYRO_SCALE_RANGE_125) * ((_tm - self._prev_meas_tm) / 1000)
+        av_y = math.radians(motion[1] / BMI160.GYRO_SCALE_RANGE_125) * ((_tm - self._prev_meas_tm) / 1000)
+        av_z = math.radians(motion[2] / BMI160.GYRO_SCALE_RANGE_125) * ((_tm - self._prev_meas_tm) / 1000)
+        self._prev_meas_tm = _tm 
+        la_x = motion[3] / BMI160.ACCEL_SCALE_RANGE_2 * BMI160.MSECSQR_PER_G
+        la_y = motion[4] / BMI160.ACCEL_SCALE_RANGE_2 * BMI160.MSECSQR_PER_G
+        la_z = motion[5] / BMI160.ACCEL_SCALE_RANGE_2 * BMI160.MSECSQR_PER_G
+
+        # if self._accel_calib_G == 0:
+        #     self._accel_calib_G = math.sqrt((la_x * la_x) + (la_y * la_y) + (la_z * la_z))
+        # else:
+        #     la_x /= (self._accel_calib_G / BMI160.MSECSQR_PER_G)
+        #     la_y /= (self._accel_calib_G / BMI160.MSECSQR_PER_G)
+        #     la_z /= (self._accel_calib_G / BMI160.MSECSQR_PER_G)
+
+        return (av_x, av_y, av_z, la_x, la_y, la_z)
 
     ## Read a BMI160 register directly.
     # @param reg register address

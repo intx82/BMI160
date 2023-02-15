@@ -1,3 +1,5 @@
+from micropython import const
+
 ## bit field offsets and lengths
 ACC_PMU_STATUS_BIT  = const(4)
 ACC_PMU_STATUS_LEN  = const(2)
@@ -36,3 +38,32 @@ FOC_ACC_Y_LEN       = const(2)
 FOC_ACC_X_BIT       = const(4)
 FOC_ACC_X_LEN       = const(2)
 FOC_GYR_EN          = const(6)
+
+ACCEL_RATE_SEL_BIT   = const(0)
+ACCEL_RATE_SEL_LEN   = const(4)
+
+# GYRO_RATE_6_25HZ      = const(0x04)
+# GYRO_RATE_12_5HZ      = const(0x05)
+GYRO_RATE_25HZ      = const(0x06)
+GYRO_RATE_50HZ      = const(0x07)
+GYRO_RATE_100HZ      = const(0x08)
+GYRO_RATE_200HZ      = const(0x09)
+GYRO_RATE_400HZ      = const(0x0A)
+GYRO_RATE_800HZ      = const(0x0B)
+GYRO_RATE_1600HZ      = const(0x0C)
+GYRO_RATE_3200HZ      = const(0x0D)
+
+ACCEL_RATE_0_78HZ      = const(0x01)
+ACCEL_RATE_1_56HZ      = const(0x02)
+ACCEL_RATE_3_12HZ      = const(0x03)
+ACCEL_RATE_6_25HZ      = const(0x04)
+ACCEL_RATE_12_5HZ      = const(0x05)
+ACCEL_RATE_25HZ      = const(0x06)
+ACCEL_RATE_50HZ      = const(0x07)
+ACCEL_RATE_100HZ      = const(0x08)
+ACCEL_RATE_200HZ      = const(0x09)
+ACCEL_RATE_400HZ      = const(0x0A)
+ACCEL_RATE_800HZ      = const(0x0B)
+ACCEL_RATE_1600HZ      = const(0x0C)
+
+ACC_OFFSET_EN = const(6)
