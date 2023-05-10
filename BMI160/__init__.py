@@ -12,7 +12,9 @@ import math
 class BMI160:
 
     # LSBs per (deg/sec) if full scale is set to +/- 125 deg/sec
-    GYRO_SCALE_RANGE_125 = 262.4
+    GYRO_SCALE_RANGE_125 = 262.144
+    GYRO_SCALE_RANGE_250 = 131.072
+
     ACCEL_SCALE_RANGE_2 = 16384.0  # LSBs per g if full scale is set to +/- 2 g
     MSECSQR_PER_G = 9.80665  # Conversion from g to meters per square second
 
@@ -44,7 +46,7 @@ class BMI160:
             pass
         sleep_ms(1)
 
-        self.set_gyro_rate(definitions.GYRO_RATE_25HZ)
+        self.set_gyro_rate(definitions.GYRO_RATE_100HZ)
         self.set_gyro_dlpf_mod(0)
         self.set_accel_rate(definitions.ACCEL_RATE_25HZ)
 
@@ -55,8 +57,25 @@ class BMI160:
         self._reg_write(registers.INT_MAP_0, 0xFF)
         self._reg_write(registers.INT_MAP_1, 0xF0)
         self._reg_write(registers.INT_MAP_2, 0x00)
+        self._gyro_calib = [0,0,0]
+        self.gyro_cal()
         self._prev_meas_tm = utime.ticks_ms()
-        self._accel_calib_G = 0
+
+
+    def gyro_cal(self):
+        _step = 0
+        for _step in range(125):
+            gv = self.getRotation()
+            if len(gv) > 0:
+                for idx in range(len(gv)):
+                    self._gyro_calib[idx] += gv[idx]
+            else:
+                _step -= 1
+            utime.sleep_ms(10)
+
+        self._gyro_calib[0] //= _step
+        self._gyro_calib[1] //= _step
+        self._gyro_calib[2] //= _step
 
     def _reg_read_bits(self, reg, pos, len):
         b = self._reg_read(reg)
@@ -1728,9 +1747,13 @@ class BMI160:
     # @see getRotation()
     # @see registers.GYRO_X_L
     def getMotion6(self):
-        raw = self._regs_read(registers.GYRO_X_L, 12)
-        vals = unpack('<6h', bytes(raw))
-        return vals
+        status = self._reg_read(registers.STATUS)
+        if status & 0xc0:
+            raw = self._regs_read(registers.GYRO_X_L, 12)
+            vals = unpack('<6h', bytes(raw))
+            return (vals[0], vals[1], vals[2], vals[3], vals[4], vals[5])
+        else:
+            return None
 
     # Get 3-axis accelerometer readings.
     # These registers store the most recent accelerometer measurements.
@@ -1854,9 +1877,12 @@ class BMI160:
     # @see getMotion6()
     # @see registers.GYRO_X_L
     def getRotation(self):
-        raw = self._regs_read(registers.GYRO_X_L, 6)
-        vals = unpack('<3h', bytes(raw))
-        return (vals[0], vals[1], vals[2])
+        status = self._reg_read(registers.STATUS)
+        if status & 0xc0:
+            raw = self._regs_read(registers.GYRO_X_L, 6)
+            vals = unpack('<3h', bytes(raw))
+            return (vals[0] >> 1, vals[1] >> 1, vals[2] >> 1)
+        return ()
 
     # Get X-axis gyroscope reading.
     # @return X-axis rotation measurement in 16-bit 2's complement format
@@ -1891,23 +1917,19 @@ class BMI160:
     #   la_* - Linear accelearation in G
     def getMetricMotion6(self):
         motion = self.getMotion6()
-        _tm = utime.ticks_ms()
-        av_x = math.radians(motion[0] / BMI160.GYRO_SCALE_RANGE_125) * ((_tm - self._prev_meas_tm) / 1000)
-        av_y = math.radians(motion[1] / BMI160.GYRO_SCALE_RANGE_125) * ((_tm - self._prev_meas_tm) / 1000)
-        av_z = math.radians(motion[2] / BMI160.GYRO_SCALE_RANGE_125) * ((_tm - self._prev_meas_tm) / 1000)
-        self._prev_meas_tm = _tm
-        la_x = -(motion[3] / BMI160.ACCEL_SCALE_RANGE_2) * BMI160.MSECSQR_PER_G
-        la_y = -(motion[4] / BMI160.ACCEL_SCALE_RANGE_2) * BMI160.MSECSQR_PER_G
-        la_z = (motion[5] / BMI160.ACCEL_SCALE_RANGE_2) * BMI160.MSECSQR_PER_G
+        if motion:
+            _tm = utime.ticks_ms()
+            av_x = math.radians((motion[0] - self._gyro_calib[0]) / (32768 / 125)) * ((_tm - self._prev_meas_tm) / 1000)
+            av_y = math.radians((motion[1] - self._gyro_calib[1]) / (32768 / 125)) * ((_tm - self._prev_meas_tm) / 1000)
+            av_z = math.radians((motion[2] - self._gyro_calib[2]) / (32768 / 125)) * ((_tm - self._prev_meas_tm) / 1000)
+            self._prev_meas_tm = _tm
 
-        # if self._accel_calib_G == 0:
-        #     self._accel_calib_G = math.sqrt((la_x * la_x) + (la_y * la_y) + (la_z * la_z))
-        # else:
-        #     la_x /= (self._accel_calib_G / BMI160.MSECSQR_PER_G)
-        #     la_y /= (self._accel_calib_G / BMI160.MSECSQR_PER_G)
-        #     la_z /= (self._accel_calib_G / BMI160.MSECSQR_PER_G)
+            la_x = (motion[3] / BMI160.ACCEL_SCALE_RANGE_2) * BMI160.MSECSQR_PER_G
+            la_y = (motion[4] / BMI160.ACCEL_SCALE_RANGE_2) * BMI160.MSECSQR_PER_G
+            la_z = (motion[5] / BMI160.ACCEL_SCALE_RANGE_2) * BMI160.MSECSQR_PER_G
 
-        return (av_x, av_y, av_z, la_x, la_y, la_z)
+            return (av_x, av_y, av_z, la_x, la_y, la_z)
+        return None
 
     # Read a BMI160 register directly.
     # @param reg register address
