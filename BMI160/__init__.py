@@ -1918,15 +1918,20 @@ class BMI160:
     def getMetricMotion6(self):
         motion = self.getMotion6()
         if motion:
-            _tm = utime.ticks_ms()
-            av_x = math.radians((motion[0] - self._gyro_calib[0]) / (32768 / 125)) * ((_tm - self._prev_meas_tm) / 1000)
-            av_y = math.radians((motion[1] - self._gyro_calib[1]) / (32768 / 125)) * ((_tm - self._prev_meas_tm) / 1000)
-            av_z = math.radians((motion[2] - self._gyro_calib[2]) / (32768 / 125)) * ((_tm - self._prev_meas_tm) / 1000)
-            self._prev_meas_tm = _tm
-
             la_x = (motion[3] / BMI160.ACCEL_SCALE_RANGE_2) * BMI160.MSECSQR_PER_G
             la_y = (motion[4] / BMI160.ACCEL_SCALE_RANGE_2) * BMI160.MSECSQR_PER_G
             la_z = (motion[5] / BMI160.ACCEL_SCALE_RANGE_2) * BMI160.MSECSQR_PER_G
+
+            _tm = utime.ticks_us()
+            if _tm > (self._prev_meas_tm + 25000):
+                self._prev_meas_tm = _tm
+                return (None, None, None, la_x, la_y, la_z)
+
+            av_x = math.radians((motion[0] - self._gyro_calib[0]) / (32768 / 125)) * ((_tm - self._prev_meas_tm) / 1000000)
+            av_y = math.radians((motion[1] - self._gyro_calib[1]) / (32768 / 125)) * ((_tm - self._prev_meas_tm) / 1000000)
+            av_z = math.radians((motion[2] - self._gyro_calib[2]) / (32768 / 125)) * ((_tm - self._prev_meas_tm) / 1000000)
+            self._prev_meas_tm = _tm
+
 
             return (av_x, av_y, av_z, la_x, la_y, la_z)
         return None
