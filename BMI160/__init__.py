@@ -57,10 +57,9 @@ class BMI160:
         self._reg_write(registers.INT_MAP_0, 0xFF)
         self._reg_write(registers.INT_MAP_1, 0xF0)
         self._reg_write(registers.INT_MAP_2, 0x00)
-        self._gyro_calib = [0,0,0]
+        self._gyro_calib = [0, 0, 0]
         self.gyro_cal()
-        self._prev_meas_tm = utime.ticks_ms()
-
+        self._prev_meas_tm = ticks_ms()
 
     def gyro_cal(self):
         _step = 0
@@ -71,7 +70,7 @@ class BMI160:
                     self._gyro_calib[idx] += gv[idx]
             else:
                 _step -= 1
-            utime.sleep_ms(10)
+            sleep_ms(10)
 
         self._gyro_calib[0] //= _step
         self._gyro_calib[1] //= _step
@@ -96,7 +95,7 @@ class BMI160:
     def _is_bit_set(self, value, bit):
         return value & (1 << bit)
 
-    # Test the sign bit and set remaining MSBs if sign bit is set */
+    # Test the sign bit and set remaining MSBs if sign bit is set
     # def _sign_extend(val, orig):
     #     return (((val) & (1 << ((orig) - 1))) ? (val | (((1 << (1 + (sizeof(val) << 3) - (orig))) - 1) << (orig))) : val)
 
@@ -1051,7 +1050,7 @@ class BMI160:
     # @return Current interrupt enabled status
     # @see registers.INT_EN_1
     # @see definitions.LOW_G_EN_BIT
-    # */
+    #
     def getIntFreefallEnabled(self):
         return 0 != (self._reg_read_bits(registers.INT_EN_1, definitions.LOW_G_EN_BIT, definitions.LOW_G_EN_LEN))
 
@@ -1060,7 +1059,7 @@ class BMI160:
     # @see getIntFreefallEnabled()
     # @see registers.INT_EN_1
     # @see definitions.LOW_G_EN_BIT
-    # */
+    #
     def setIntFreefallEnabled(self, enabled):
         self._reg_write_bits(registers.INT_EN_1, 0x1 if enabled else 0,
                              definitions.LOW_G_EN_BIT, definitions.LOW_G_EN_LEN)
@@ -1070,7 +1069,7 @@ class BMI160:
     # @return Current interrupt enabled status
     # @see registers.INT_EN_1
     # @see definitions.HIGH_G_EN_BIT
-    # */
+    #
     def getIntShockEnabled(self):
         return 0 != (self._reg_read_bits(registers.INT_EN_1, definitions.HIGH_G_EN_BIT, definitions.HIGH_G_EN_LEN))
 
@@ -1079,7 +1078,7 @@ class BMI160:
     # @see getIntShockEnabled()
     # @see registers.INT_EN_1
     # @see definitions.HIGH_G_EN_BIT
-    # */
+    #
     def setIntShockEnabled(self, enabled):
         self._reg_write_bits(registers.INT_EN_1, 0x7 if enabled else 0x0,
                              definitions.HIGH_G_EN_BIT, definitions.HIGH_G_EN_LEN)
@@ -1089,7 +1088,7 @@ class BMI160:
     # @return Current interrupt enabled status
     # @see registers.INT_EN_2
     # @see definitions.STEP_EN_BIT
-    # */
+    #
     def getIntStepEnabled(self):
         return 0 != (self._reg_read_bits(registers.INT_EN_2, definitions.STEP_EN_BIT, 1))
 
@@ -1098,7 +1097,7 @@ class BMI160:
     # @see getIntStepEnabled()
     # @see registers.INT_EN_2
     # @see definitions.STEP_EN_BIT
-    # */
+    #
     def setIntStepEnabled(self, enabled):
         self._reg_write_bits(
             registers.INT_EN_2, 0x1 if enabled else 0x0, definitions.STEP_EN_BIT, 1)
@@ -1108,7 +1107,7 @@ class BMI160:
     # @return Current interrupt enabled status
     # @see registers.INT_EN_0
     # @see definitions.ANYMOTION_EN_BIT
-    # */
+    #
     def getIntMotionEnabled(self):
         return 0 != (self._reg_read_bits(registers.INT_EN_0, definitions.ANYMOTION_EN_BIT, definitions.ANYMOTION_EN_LEN))
 
@@ -1117,7 +1116,7 @@ class BMI160:
     # @see getIntMotionEnabled()
     # @see registers.INT_EN_0
     # @see definitions.ANYMOTION_EN_BIT
-    # */
+    #
     def setIntMotionEnabled(self, enabled):
         # Enable for all 3 axes
         self._reg_write_bits(registers.INT_EN_0, 0x7 if enabled else 0x0,
@@ -1128,7 +1127,7 @@ class BMI160:
     # @return Current interrupt enabled status
     # @see registers.INT_EN_2
     # @see definitions.NOMOTION_EN_BIT
-    # */
+    #
     def getIntZeroMotionEnabled(self):
         return 0 != (self._reg_read_bits(registers.INT_EN_2, definitions.NOMOTION_EN_BIT, definitions.NOMOTION_EN_LEN))
 
@@ -1138,7 +1137,7 @@ class BMI160:
     # @see registers.INT_EN_2
     # @see definitions.NOMOTION_EN_BIT
     # @see registers.INT_MOTION_3
-    # */
+    #
     def setIntZeroMotionEnabled(self, enabled):
         if (enabled):
             # Select No-Motion detection mode
@@ -1153,7 +1152,7 @@ class BMI160:
     # @return Current interrupt enabled status
     # @see registers.INT_EN_0
     # @see definitions.S_TAP_EN_BIT
-    # */
+    #
     def getIntTapEnabled(self):
         return 0 != (self._reg_read_bits(registers.INT_EN_0, definitions.S_TAP_EN_BIT, 1))
 
@@ -1162,7 +1161,7 @@ class BMI160:
     # @see getIntTapEnabled()
     # @see registers.INT_EN_0
     # @see definitions.S_TAP_EN_BIT
-    # */
+    #
     def setIntTapEnabled(self, enabled):
         self._reg_write_bits(
             registers.INT_EN_0, 0x1 if enabled else 0, definitions.S_TAP_EN_BIT, 1)
@@ -1172,7 +1171,7 @@ class BMI160:
     # @return Current interrupt enabled status
     # @see registers.INT_EN_0
     # @see definitions.D_TAP_EN_BIT
-    # */
+    #
     def getIntDoubleTapEnabled(self):
         return 0 != (self._reg_read_bits(registers.INT_EN_0, definitions.D_TAP_EN_BIT, 1))
 
@@ -1181,7 +1180,7 @@ class BMI160:
     # @see getIntTapEnabled()
     # @see registers.INT_EN_0
     # @see definitions.D_TAP_EN_BIT
-    # */
+    #
     def setIntDoubleTapEnabled(self, enabled):
         self._reg_write_bits(
             registers.INT_EN_0, 0x1 if enabled else 0, definitions.D_TAP_EN_BIT, 1)
@@ -1191,7 +1190,7 @@ class BMI160:
     # @return Current interrupt enabled status
     # @see registers.INT_EN_1
     # @see definitions.FFULL_EN_BIT
-    # */
+    #
     def getIntFIFOBufferFullEnabled(self):
         return 0 != (self._reg_read_bits(registers.INT_EN_1, definitions.FFULL_EN_BIT, 1))
 
@@ -1200,7 +1199,7 @@ class BMI160:
     # @see getIntFIFOBufferFullEnabled()
     # @see registers.INT_EN_1
     # @see definitions.FFULL_EN_BIT
-    # */
+    #
     def setIntFIFOBufferFullEnabled(self, enabled):
         self._reg_write_bits(
             registers.INT_EN_1, 0x1 if enabled else 0x0, definitions.FFULL_EN_BIT, 1)
@@ -1658,7 +1657,8 @@ class BMI160:
     # @see registers.INT_OUT_CTRL
     # @see definitions.INT1_LVL
     def setInterruptMode(self, mode):
-        self._reg_write_bits(registers.INT_OUT_CTRL, 0x0 if mode else 0x1, definitions.INT1_LVL, 1)
+        self._reg_write_bits(registers.INT_OUT_CTRL,
+                             0x0 if mode else 0x1, definitions.INT1_LVL, 1)
 
     # Get interrupt drive mode.
     # Will be set 0 for push-pull, 1 for open-drain.
@@ -1716,13 +1716,14 @@ class BMI160:
     # @see registers.INT_LATCH
     # @see BMI160InterruptLatchMode
     def setInterruptLatch(self, mode):
-        self._reg_write_bits(registers.INT_LATCH, mode, definitions.LATCH_MODE_BIT, definitions.LATCH_MODE_LEN)
+        self._reg_write_bits(registers.INT_LATCH, mode,
+                             definitions.LATCH_MODE_BIT, definitions.LATCH_MODE_LEN)
 
     # Get interrupt enabled status.
     # @return Current interrupt enabled status
     # @see registers.INT_OUT_CTRL
     # @see definitions.INT1_OUTPUT_EN
-    # */
+    #
     def getIntEnabled(self):
         return 0 != (self._reg_read_bits(registers.INT_OUT_CTRL, definitions.INT1_OUTPUT_EN, 1))
 
@@ -1730,7 +1731,7 @@ class BMI160:
     # @param enabled New interrupt enabled status
     # @see registers.INT_OUT_CTRL
     # @see definitions.INT1_OUTPUT_EN
-    # */
+    #
     def setIntEnabled(self, enabled):
         self._reg_write_bits(
             registers.INT_OUT_CTRL, 0x1 if enabled else 0, definitions.INT1_OUTPUT_EN, 1)
@@ -1918,20 +1919,25 @@ class BMI160:
     def getMetricMotion6(self):
         motion = self.getMotion6()
         if motion:
-            la_x = (motion[3] / BMI160.ACCEL_SCALE_RANGE_2) * BMI160.MSECSQR_PER_G
-            la_y = (motion[4] / BMI160.ACCEL_SCALE_RANGE_2) * BMI160.MSECSQR_PER_G
-            la_z = (motion[5] / BMI160.ACCEL_SCALE_RANGE_2) * BMI160.MSECSQR_PER_G
+            la_x = (motion[3] / BMI160.ACCEL_SCALE_RANGE_2) * \
+                BMI160.MSECSQR_PER_G
+            la_y = (motion[4] / BMI160.ACCEL_SCALE_RANGE_2) * \
+                BMI160.MSECSQR_PER_G
+            la_z = (motion[5] / BMI160.ACCEL_SCALE_RANGE_2) * \
+                BMI160.MSECSQR_PER_G
 
-            _tm = utime.ticks_us()
+            _tm = ticks_us()
             if _tm > (self._prev_meas_tm + 25000):
                 self._prev_meas_tm = _tm
                 return (None, None, None, la_x, la_y, la_z)
 
-            av_x = math.radians((motion[0] - self._gyro_calib[0]) / (32768 / 125)) * ((_tm - self._prev_meas_tm) / 1000000)
-            av_y = math.radians((motion[1] - self._gyro_calib[1]) / (32768 / 125)) * ((_tm - self._prev_meas_tm) / 1000000)
-            av_z = math.radians((motion[2] - self._gyro_calib[2]) / (32768 / 125)) * ((_tm - self._prev_meas_tm) / 1000000)
+            av_x = math.radians((motion[0] - self._gyro_calib[0]) /
+                                (32768 / 125)) * ((_tm - self._prev_meas_tm) / 1000000)
+            av_y = math.radians((motion[1] - self._gyro_calib[1]) /
+                                (32768 / 125)) * ((_tm - self._prev_meas_tm) / 1000000)
+            av_z = math.radians((motion[2] - self._gyro_calib[2]) /
+                                (32768 / 125)) * ((_tm - self._prev_meas_tm) / 1000000)
             self._prev_meas_tm = _tm
-
 
             return (av_x, av_y, av_z, la_x, la_y, la_z)
         return None
@@ -1965,3 +1971,97 @@ class BMI160_I2C(BMI160):
         self.i2c.writeto(self.addr, bytes([reg]))
         sleep_us(2)
         return self.i2c.readfrom(self.addr, n)
+
+
+
+class BMM150:
+    # from https://github.com/EmotiBit/EmotiBit_BMI160
+    
+    XY_SCALE = const(1300 / (2 ** 13))
+    Z_SCALE = const(2500 / (2 ** 14))
+
+    def __init__(self, bmi: BMI160_I2C) -> None:
+        self._bmi = bmi
+
+        # Configure MAG interface and setup mode
+        # Set MAG interface normal power mode
+        self._reg_write(registers.CMD, commands.MAG_MODE_NORMAL)
+        sleep_ms(60)
+
+        # Sequence for enabling pull-up register
+        self._reg_write(registers.FOC_CONF, definitions.FOC_CONF_DEFAULT)
+        self._reg_write(registers.CMD, commands.EN_PULL_UP_REG_1)
+        self._reg_write(registers.CMD, commands.EN_PULL_UP_REG_2)
+        self._reg_write(registers.CMD, commands.EN_PULL_UP_REG_3)
+        self._reg_write(registers.REG_7F, commands.EN_PULL_UP_REG_4)
+        self._reg_write_bits(registers.MAG_X_H, 2, 4, 2)
+        self._reg_write(registers.REG_7F, commands.EN_PULL_UP_REG_5)
+
+        # Set MAG I2C address
+        self._reg_write(registers.MAG_IF_0, definitions.BMM150_BASED_I2C_ADDR)
+
+        # Enable MAG setup mode, set read out offset to MAX and burst length to 8
+        self._reg_write(registers.MAG_IF_1, definitions.MAG_MAN_EN)
+
+        # Enable MAG interface
+        self._reg_write_bits(registers.IF_CONF, 2, 4, 2)
+
+        # Configure BMM150 Sensor
+        # Enable BMM150 Sleep mode
+        self._reg_write(registers.MAG_IF_4, definitions.BMM150_EN_SLEEP_MODE)
+        self._reg_write(registers.MAG_IF_3, definitions.BMM150_POWER_REG)
+        sleep_ms(3)
+
+        # Set BMM150 repetitions for X/Y-Axis
+        self._reg_write(registers.MAG_IF_4, definitions.BMM150_REGULAR_REPXY)
+        self._reg_write(registers.MAG_IF_3, definitions.BMM150_XY_REP_REG)
+
+        # Set BMM150 repetitions for Z-Axis
+        self._reg_write(registers.MAG_IF_4, definitions.BMM150_REGULAR_REPZ)
+        self._reg_write(registers.MAG_IF_3, definitions.BMM150_Z_REP_REG)
+
+        # Configure MAG interface for Data mode
+        # Configure MAG write address and data to force mode of BMM150
+        self._reg_write(registers.MAG_IF_4, definitions.BMM150_OPMODE_REG_DEFAULT)
+        self._reg_write(registers.MAG_IF_3, definitions.BMM150_OPMODE_REG)
+        # Configure MAG read data address
+        self._reg_write(registers.MAG_IF_2, definitions.BMM150_DATA_REG)
+        # Configure MAG interface data rate (25Hz)
+        self._reg_write(registers.AUX_ODR_ADDR, definitions.MAG_CONF_25Hz)
+        # Enable MAG data mode
+        self._reg_write_bits(registers.MAG_IF_1, 0, 7)
+        # Wait for power-up to complete
+        while (0x1 != self._reg_read_bits(registers.PMU_STATUS,0,2)):
+            sleep_ms(1)
+
+    
+    def _reg_write(self, reg, data):
+        self.bmi._reg_write(reg, data)
+        
+    def _reg_write_bits(self, reg, data, pos, sz):
+        b = self._reg_read(reg)
+        mask = ((1 << sz) - 1) << pos
+        data <<= pos # shift data into correct position
+        data &= mask # zero all non-important bits in data
+        b &= ~(mask) # zero all important bits in existing byte
+        b |= data # combine data with existing byte
+        self._reg_write(reg, b)
+
+    def _reg_read(self, reg):
+        return self.bmi._reg_read(reg)
+
+    def _reg_read_bits(self, reg, pos, sz):
+        b = self._reg_read(reg)
+        mask = (1 << sz) - 1
+        b >>= pos
+        b &= mask
+        return b
+    
+    def read_scaled(self):
+        x, y, z = self.read_raw()
+        return (x / BMM150.XY_SCALE, y / BMM150.XY_SCALE, z / BMM150.Z_SCALE, self._bmi.getTemperature())
+
+    def read_raw(self):
+        regs = self._bmi._regs_read(4,6)
+        regs = unpack('<hhh', regs)
+        return (regs[0] >> 3, regs[1] >> 3, regs[2] >> 2 )

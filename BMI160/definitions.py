@@ -1,69 +1,152 @@
 from micropython import const
 
-## bit field offsets and lengths
-ACC_PMU_STATUS_BIT  = const(4)
-ACC_PMU_STATUS_LEN  = const(2)
-GYR_PMU_STATUS_BIT  = const(2)
-GYR_PMU_STATUS_LEN  = const(2)
-GYRO_RANGE_SEL_BIT  = const(0)
-GYRO_RANGE_SEL_LEN  = const(3)
-GYRO_RATE_SEL_BIT   = const(0)
-GYRO_RATE_SEL_LEN   = const(4)
-GYRO_DLPF_SEL_BIT   = const(4)
-GYRO_DLPF_SEL_LEN   = const(2)
-ACCEL_DLPF_SEL_BIT  = const(4)
-ACCEL_DLPF_SEL_LEN  = const(3)
+# bit field offsets and lengths
+ACC_PMU_STATUS_BIT = const(4)
+ACC_PMU_STATUS_LEN = const(2)
+GYR_PMU_STATUS_BIT = const(2)
+GYR_PMU_STATUS_LEN = const(2)
+GYRO_RANGE_SEL_BIT = const(0)
+GYRO_RANGE_SEL_LEN = const(3)
+GYRO_RATE_SEL_BIT = const(0)
+GYRO_RATE_SEL_LEN = const(4)
+GYRO_DLPF_SEL_BIT = const(4)
+GYRO_DLPF_SEL_LEN = const(2)
+ACCEL_DLPF_SEL_BIT = const(4)
+ACCEL_DLPF_SEL_LEN = const(3)
 ACCEL_RANGE_SEL_BIT = const(0)
 ACCEL_RANGE_SEL_LEN = const(4)
 
-## Gyroscope Sensitivity Range options
+# Gyroscope Sensitivity Range options
 # see setFullScaleGyroRange()
-GYRO_RANGE_2000     = const(0)    # +/- 2000 degrees/second
-GYRO_RANGE_1000     = const(1)    # +/- 1000 degrees/second
-GYRO_RANGE_500      = const(2)    # +/-  500 degrees/second
-GYRO_RANGE_250      = const(3)    # +/-  250 degrees/second
-GYRO_RANGE_125      = const(4)    # +/-  125 degrees/second
+GYRO_RANGE_2000 = const(0)    # +/- 2000 degrees/second
+GYRO_RANGE_1000 = const(1)    # +/- 1000 degrees/second
+GYRO_RANGE_500 = const(2)    # +/-  500 degrees/second
+GYRO_RANGE_250 = const(3)    # +/-  250 degrees/second
+GYRO_RANGE_125 = const(4)    # +/-  125 degrees/second
 
-## Accelerometer Sensitivity Range options
+# Accelerometer Sensitivity Range options
 # see setFullScaleAccelRange()
-ACCEL_RANGE_2G      = const(0X03) # +/-  2g range
-ACCEL_RANGE_4G      = const(0X05) # +/-  4g range
-ACCEL_RANGE_8G      = const(0X08) # +/-  8g range
-ACCEL_RANGE_16G     = const(0X0C) # +/- 16g range
+ACCEL_RANGE_2G = const(0X03)  # +/-  2g range
+ACCEL_RANGE_4G = const(0X05)  # +/-  4g range
+ACCEL_RANGE_8G = const(0X08)  # +/-  8g range
+ACCEL_RANGE_16G = const(0X0C)  # +/- 16g range
 
-FOC_ACC_Z_BIT       = const(0)
-FOC_ACC_Z_LEN       = const(2)
-FOC_ACC_Y_BIT       = const(2)
-FOC_ACC_Y_LEN       = const(2)
-FOC_ACC_X_BIT       = const(4)
-FOC_ACC_X_LEN       = const(2)
-FOC_GYR_EN          = const(6)
+FOC_ACC_Z_BIT = const(0)
+FOC_ACC_Z_LEN = const(2)
+FOC_ACC_Y_BIT = const(2)
+FOC_ACC_Y_LEN = const(2)
+FOC_ACC_X_BIT = const(4)
+FOC_ACC_X_LEN = const(2)
+FOC_GYR_EN = const(6)
 
-ACCEL_RATE_SEL_BIT   = const(0)
-ACCEL_RATE_SEL_LEN   = const(4)
+FOC_CONF_DEFAULT = const(0x40)
+
+ACCEL_RATE_SEL_BIT = const(0)
+ACCEL_RATE_SEL_LEN = const(4)
 
 # GYRO_RATE_6_25HZ      = const(0x04)
 # GYRO_RATE_12_5HZ      = const(0x05)
-GYRO_RATE_25HZ      = const(0x06)
-GYRO_RATE_50HZ      = const(0x07)
-GYRO_RATE_100HZ      = const(0x08)
-GYRO_RATE_200HZ      = const(0x09)
-GYRO_RATE_400HZ      = const(0x0A)
-GYRO_RATE_800HZ      = const(0x0B)
-GYRO_RATE_1600HZ      = const(0x0C)
-GYRO_RATE_3200HZ      = const(0x0D)
+GYRO_RATE_25HZ = const(0x06)
+GYRO_RATE_50HZ = const(0x07)
+GYRO_RATE_100HZ = const(0x08)
+GYRO_RATE_200HZ = const(0x09)
+GYRO_RATE_400HZ = const(0x0A)
+GYRO_RATE_800HZ = const(0x0B)
+GYRO_RATE_1600HZ = const(0x0C)
+GYRO_RATE_3200HZ = const(0x0D)
 
-ACCEL_RATE_0_78HZ      = const(0x01)
-ACCEL_RATE_1_56HZ      = const(0x02)
-ACCEL_RATE_3_12HZ      = const(0x03)
-ACCEL_RATE_6_25HZ      = const(0x04)
-ACCEL_RATE_12_5HZ      = const(0x05)
-ACCEL_RATE_25HZ      = const(0x06)
-ACCEL_RATE_50HZ      = const(0x07)
-ACCEL_RATE_100HZ      = const(0x08)
-ACCEL_RATE_200HZ      = const(0x09)
-ACCEL_RATE_400HZ      = const(0x0A)
-ACCEL_RATE_800HZ      = const(0x0B)
-ACCEL_RATE_1600HZ      = const(0x0C)
+ACCEL_RATE_0_78HZ = const(0x01)
+ACCEL_RATE_1_56HZ = const(0x02)
+ACCEL_RATE_3_12HZ = const(0x03)
+ACCEL_RATE_6_25HZ = const(0x04)
+ACCEL_RATE_12_5HZ = const(0x05)
+ACCEL_RATE_25HZ = const(0x06)
+ACCEL_RATE_50HZ = const(0x07)
+ACCEL_RATE_100HZ = const(0x08)
+ACCEL_RATE_200HZ = const(0x09)
+ACCEL_RATE_400HZ = const(0x0A)
+ACCEL_RATE_800HZ = const(0x0B)
+ACCEL_RATE_1600HZ = const(0x0C)
 
 ACC_OFFSET_EN = const(6)
+
+BMM150_OK = const(0x00)
+
+BMM150_EN_SLEEP_MODE = const(0x01)
+#BMM150_XY_REPETITIONS = const(0x04)
+#BMM150_Z_REPETITIONS  = const(0x0E)
+
+# POWER MODE DEFINTIONS
+BMM150_NORMAL_MODE = const(0x00)
+BMM150_FORCED_MODE = const(0x01)
+BMM150_SLEEP_MODE = const(0x03)
+BMM150_SUSPEND_MODE = const(0x04)
+
+BMM150_OP_MODE_BIT = const(1)
+BMM150_OP_MODE_LEN = const(2)
+
+# PRESET MODES - REPETITIONS-XY RATES
+BMM150_LOWPOWER_REPXY = const(1)
+BMM150_REGULAR_REPXY = const(4)
+BMM150_ENHANCED_REPXY = const(7)
+BMM150_HIGHACCURACY_REPXY = const(23)
+
+# PRESET MODES - REPETITIONS-Z RATES
+BMM150_LOWPOWER_REPZ = const(2)
+BMM150_REGULAR_REPZ = const(14)
+BMM150_ENHANCED_REPZ = const(26)
+BMM150_HIGHACCURACY_REPZ = const(82)
+
+BMM150_DATA_REG = const(0x42)
+BMM150_POWER_REG = const(0x4B)
+BMM150_OPMODE_REG = const(0x4C)
+BMM150_XY_REP_REG = const(0x51)
+BMM150_Z_REP_REG = const(0x52)
+
+# Based I2C addr is 0x20 caused it is 0x10 plus one 0 at the end.
+BMM150_BASED_I2C_ADDR = const(0x20)
+MAG_MAN_EN = const(0x83)
+MAG_MAN_DIS = const(0x03)
+MAG_CONF_25Hz = const(0x06)
+BMM150_BASED_I2C_MASK = const(0xFE)
+
+BMM150_POWER_REG_DEFAULT = const(0x01)
+BMM150_OPMODE_REG_DEFAULT = const(0x02)
+BMM150_OPMODE_REG_P = const(0x06)
+BMM150_R_DATA_ADDR = const(0x42)
+
+# **\name Register Address
+BMM150_CHIP_ID_ADDR = const(0x40)
+BMM150_DATA_X_LSB = const(0x42)
+BMM150_DATA_READY_STATUS = const(0x48)
+BMM150_INTERRUPT_STATUS = const(0x4A)
+BMM150_POWER_CONTROL_ADDR = const(0x4B)
+BMM150_OP_MODE_ADDR = const(0x4C)
+BMM150_INT_CONFIG_ADDR = const(0x4D)
+BMM150_AXES_ENABLE_ADDR = const(0x4E)
+BMM150_LOW_THRESHOLD_ADDR = const(0x4F)
+BMM150_HIGH_THRESHOLD_ADDR = const(0x50)
+BMM150_REP_XY_ADDR = const(0x51)
+BMM150_REP_Z_ADDR = const(0x52)
+
+# **\name PRESET MODE DEFINITIONS
+BMM150_PRESETMODE_LOWPOWER = const(0x01)
+BMM150_PRESETMODE_REGULAR = const(0x02)
+BMM150_PRESETMODE_HIGHACCURACY = const(0x03)
+BMM150_PRESETMODE_ENHANCED = const(0x04)
+
+# **\name DATA RATE DEFINITIONS
+BMM150_DATA_RATE_10HZ = const(0x00)
+BMM150_DATA_RATE_02HZ = const(0x01)
+BMM150_DATA_RATE_06HZ = const(0x02)
+BMM150_DATA_RATE_08HZ = const(0x03)
+BMM150_DATA_RATE_15HZ = const(0x04)
+BMM150_DATA_RATE_20HZ = const(0x05)
+BMM150_DATA_RATE_25HZ = const(0x06)
+BMM150_DATA_RATE_30HZ = const(0x07)
+
+BMM150_DATA_RATE_BIT = const(3)
+BMM150_DATA_RATE_LEN = const(3)
+
+
+MAG_IF_1_MAG_MAN_EN = const(0x83)
