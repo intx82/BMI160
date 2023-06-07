@@ -58,6 +58,7 @@ class BMI160:
         self._reg_write(registers.INT_MAP_2, 0x00)
         self._gyro_calib = [0, 0, 0]
         self.gyro_cal()
+
         self._prev_meas_tm = ticks_us()
 
     def gyro_cal(self):
@@ -1656,7 +1657,8 @@ class BMI160:
     # @see registers.INT_OUT_CTRL
     # @see definitions.INT1_LVL
     def setInterruptMode(self, mode):
-        self._reg_write_bits(registers.INT_OUT_CTRL, 0x0 if mode else 0x1, definitions.INT1_LVL, 1)
+        self._reg_write_bits(registers.INT_OUT_CTRL,
+                             0x0 if mode else 0x1, definitions.INT1_LVL, 1)
 
     # Get interrupt drive mode.
     # Will be set 0 for push-pull, 1 for open-drain.
@@ -1714,7 +1716,8 @@ class BMI160:
     # @see registers.INT_LATCH
     # @see BMI160InterruptLatchMode
     def setInterruptLatch(self, mode):
-        self._reg_write_bits(registers.INT_LATCH, mode, definitions.LATCH_MODE_BIT, definitions.LATCH_MODE_LEN)
+        self._reg_write_bits(registers.INT_LATCH, mode,
+                             definitions.LATCH_MODE_BIT, definitions.LATCH_MODE_LEN)
 
     # Get interrupt enabled status.
     # @return Current interrupt enabled status
@@ -1925,9 +1928,12 @@ class BMI160:
                 self._prev_meas_tm = _tm
                 return (None, None, None, la_x, la_y, la_z)
 
-            av_x = math.radians((motion[0] - self._gyro_calib[0]) / (32768 / 125)) * ((_tm - self._prev_meas_tm) / 1000000)
-            av_y = math.radians((motion[1] - self._gyro_calib[1]) / (32768 / 125)) * ((_tm - self._prev_meas_tm) / 1000000)
-            av_z = math.radians((motion[2] - self._gyro_calib[2]) / (32768 / 125)) * ((_tm - self._prev_meas_tm) / 1000000)
+            av_x = math.radians((motion[0] - self._gyro_calib[0]) /
+                                (32768 / 125)) * ((_tm - self._prev_meas_tm) / 1000000)
+            av_y = math.radians((motion[1] - self._gyro_calib[1]) /
+                                (32768 / 125)) * ((_tm - self._prev_meas_tm) / 1000000)
+            av_z = math.radians((motion[2] - self._gyro_calib[2]) /
+                                (32768 / 125)) * ((_tm - self._prev_meas_tm) / 1000000)
             self._prev_meas_tm = _tm
 
             return (av_x, av_y, av_z, la_x, la_y, la_z)
